@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <header>
@@ -39,8 +40,36 @@ function caricaMarkers(schede){
 		value = value['c']
 		if (value[0]['v'] == "ID"){return;}
 		if (value[0]['v'] == ""){return;}
-		var marker = L.marker([value[5]['v'], value[6]['v']]).addTo(map);
+		tags = []
+
+		if(value[7]['v'] === 'SI'){
+			tags.push('LC')
+		}
+		if(value[8]['v'] === 'SI'){
+			tags.push('EG')
+		}
+		if(value[9]['v'] === 'SI'){
+			tags.push('RS')
+		}
+
+		var marker = L.marker([value[5]['v'], value[6]['v']], {tags: tags}).addTo(map);
+		
 		marker.bindPopup("<b>"+value[1]['v']+"</b><br>Luogo: "+value[2]['v']+"<br>Capienza: "+value[3]['v']);
+
+		var map = L.map('map').setView([36.86, 30.75], 12).addLayer(osm);
+
+	// var fastMarker = L.marker([36.8963965256, 30.7087719440], { tags: ['fast'] }).addTo(map).bindPopup('fast'); 
+	// var slowMarker = L.marker([36.8967740487, 30.7107782364], { tags: ['slow'] }).addTo(map).bindPopup('slow');
+	// var bothMarker = L.marker([36.8881768737, 30.7024331594], { tags: ['fast', 'slow'] }).addTo(map).bindPopup('fast & slow');
+
+	
+
+	L.control.tagFilterButton({
+        data: ['EG', 'LC', 'RS'],
+        icon: '<img src="filter.png">',
+        filterOnEveryClick: true
+    }).addTo( map );
+
 	});
 }
 
