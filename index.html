@@ -40,19 +40,20 @@ function caricaMarkers(schede){
 		value = value['c']
 		if (value[0]['v'] == "ID"){return;}
 		if (value[0]['v'] == ""){return;}
-		tags = []
+		tagsToAppend = []
 
 		if(value[7]['v'] === 'SI'){
-			tags.push('LC')
+			tagsToAppend.push('LC')
 		}
 		if(value[8]['v'] === 'SI'){
-			tags.push('EG')
+			tagsToAppend.push('EG')
 		}
 		if(value[9]['v'] === 'SI'){
-			tags.push('RS')
+			tagsToAppend.push('RS')
 		}
-
-		var marker = L.marker([value[5]['v'], value[6]['v']], {tags: tags}).addTo(map);
+		console.log(tagsToAppend)
+		
+		var marker = L.marker([value[5]['v'], value[6]['v']], {tags: tagsToAppend}).addTo(map);
 		
 		marker.bindPopup("<b>"+value[1]['v']+"</b><br>Luogo: "+value[2]['v']+"<br>Capienza: "+value[3]['v']);
 
@@ -66,7 +67,6 @@ function caricaMarkers(schede){
 
 	L.control.tagFilterButton({
         data: ['EG', 'LC', 'RS'],
-        icon: '<img src="filter.png">',
         filterOnEveryClick: true
     }).addTo( map );
 
