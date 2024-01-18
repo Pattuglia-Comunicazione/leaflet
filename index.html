@@ -1,78 +1,75 @@
-
 <!DOCTYPE html>
-<html>
-<header>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-</header>
-<body>
-<div id="map" style="height: 90vh; width:90vw; margin-left: auto; margin-right: auto;"></div>
-</body>
-<footer>
-<script>
-
-$(document).ready(function() {
-    $.ajax({
-        url: "https://zonabaricentrostrutture.giudimax.workers.dev/",
-		dataType: 'text',
-        success: function(data) {
-			console.log(data);
-            var regex = /\(([^)]+)\)/;
-            var risultato = String(data).match(regex);
-            const obj = JSON.parse(risultato[1]);
-            const schede = obj['table']['rows'];
-			caricaMarkers(schede);
-        },
-        error: function(jqXhr, textStatus, errorMessage) {
-            console.log(errorMessage)
-        },
-    });
-})
-
-function caricaMarkers(schede){
-	var map = L.map('map').setView([41.092144, 16.8872818], 11);
-	L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		maxZoom: 19,
-		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-	}).addTo(map);
-	$.each(schede, function(index, value){
-		value = value['c']
-		if (value[0]['v'] == "ID"){return;}
-		if (value[0]['v'] == ""){return;}
-		tagsToAppend = []
-
-		if(value[7]['v'] === 'SI'){
-			tagsToAppend.push('LC')
-		}
-		if(value[8]['v'] === 'SI'){
-			tagsToAppend.push('EG')
-		}
-		if(value[9]['v'] === 'SI'){
-			tagsToAppend.push('RS')
-		}
-		console.log(tagsToAppend)
-		
-		var marker = L.marker([value[5]['v'], value[6]['v']], {tags: tagsToAppend}).addTo(map);
-		
-		marker.bindPopup("<b>"+value[1]['v']+"</b><br>Luogo: "+value[2]['v']+"<br>Capienza: "+value[3]['v']);
-
-		var map = L.map('map').setView([36.86, 30.75], 12).addLayer(osm);
-
-	// var fastMarker = L.marker([36.8963965256, 30.7087719440], { tags: ['fast'] }).addTo(map).bindPopup('fast'); 
-	// var slowMarker = L.marker([36.8967740487, 30.7107782364], { tags: ['slow'] }).addTo(map).bindPopup('slow');
-	// var bothMarker = L.marker([36.8881768737, 30.7024331594], { tags: ['fast', 'slow'] }).addTo(map).bindPopup('fast & slow');
-
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
 	
+	<script src="https://cdn.jsdelivr.net/npm/leaflet-tag-filter-button@0.0.5/src/leaflet-tag-filter-button.min.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-tag-filter-button@0.0.5/src/leaflet-tag-filter-button.min.css">
 
-	L.control.tagFilterButton({
-        data: ['EG', 'LC', 'RS'],
-        filterOnEveryClick: true
-    }).addTo( map );
+</head>
+<body>
+    <div id="map" style="height: 90vh; width: 90vw; margin-left: auto; margin-right: auto;"></div>
 
-	});
-}
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                url: "https://zonabaricentrostrutture.giudimax.workers.dev/",
+                dataType: 'text',
+                success: function(data) {
+                    console.log(data);
+                    var regex = /\(([^)]+)\)/;
+                    var risultato = String(data).match(regex);
+                    const obj = JSON.parse(risultato[1]);
+                    const schede = obj['table']['rows'];
+                    caricaMarkers(schede);
+                },
+                error: function(jqXhr, textStatus, errorMessage) {
+                    console.log(errorMessage);
+                },
+            });
+        });
 
-</script>
-</footer>
+        function caricaMarkers(schede) {
+            var map = L.map('map').setView([41.092144, 16.8872818], 11);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            $.each(schede, function(index, value) {
+                value = value['c'];
+                if (value[0]['v'] == "ID" || value[0]['v'] == "") { return; }
+                var tagsToAppend = [];
+
+                if (value[7]['v'] === 'SI') {
+                    tagsToAppend.push('LC');
+                }
+                if (value[8]['v'] === 'SI') {
+                    tagsToAppend.push('EG');
+                }
+                if (value[9]['v'] === 'SI') {
+                    tagsToAppend.push('RS');
+                }
+                console.log(tagsToAppend);
+
+                var marker = L.marker([value[5]['v'], value[6]['v']], { tags: tagsToAppend }).addTo(map);
+
+                marker.bindPopup("<b>" + value[1]['v'] + "</b><br>Luogo: " + value[2]['v'] + "<br>Capienza: " + value[3]['v']);
+            });
+
+            L.control.tagFilterButton({
+                data: ['EG', 'LC', 'RS'],
+                icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
+                filterOnEveryClick: true
+            }).addTo(map);
+        }
+    </script>
+</body>
 </html>
