@@ -23,7 +23,7 @@
                 const risultato = String(data).match(regex);
                 const obj = JSON.parse(risultato[1]);
                 const schede = obj['table']['rows'];
-                caricaMarkers(schede);
+                await caricaMarkers(schede);
             } catch (error) {
                 console.log("Error fetching data:", error);
             }
@@ -42,71 +42,79 @@
             });
         }
 
-        function getLonLat(address) {
+        async function getLonLat(address) {
             const formattedAddress = address.replace(/,/g, '+');
             const url = `https://nominatim.openstreetmap.org/search?q=${formattedAddress}&format=json&polygon=1&addressdetails=1`;
 
-            return fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const lat = data[0].lat;
-                        const lon = data[0].lon;
-                        return { lat, lon };
-                    } else {
-                        console.log("No valid data found for the given address:", formattedAddress);
-                        return { lat: null, lon: null };
-                    }
-                })
-                .catch(error => {
-                    console.log("Error fetching data:", error.message);
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const { lat, lon } = data[0];
+                    return { lat, lon };
+                } else {
+                    console.log("No valid data found for the given address:", formattedAddress);
                     return { lat: null, lon: null };
-                });
+                }
+            } catch (error) {
+                console.log("Error fetching data:", error.message);
+                return { lat: null, lon: null };
+            }
         }
 
-        function caricaMarkers(schede) {
+        async function caricaMarkers(schede) {
             var map = L.map('map').setView([41.092144, 16.8872818], 11);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
-            // Map each schede to an array of promises
-            const promises = schede.map(value => {
+            var fields = [];
+            var indexes = [];
+            var allFields = [];
+
+            await Promise.all(schede.map(async (value) => {
                 value = value['c'];
-                if (value[0]['v'] == "ID" || value[0]['v'] == "") { return Promise.resolve(null); }
 
-                var tagsToAppend = [];
+                if (value[0]['v'] == "ID" || value[0]['v'] == "") {
+                    value.forEach((cell, index) => {
+                        if (cell && cell['v'] !== null) {
+                        	allFields.push(cell['v'])
+                        	if(!['ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine'].includes(cell['v'])) {
+                            fields.push(cell['v']);
+                            indexes.push(index);
+                        }
+                    }
+                  });
+                    console.log(fields);
+                    console.log(indexes);
+                    return;
+                }
+                var tagsToAppend = []
+                indexes.forEach(index => {
+                	if (value[index]['v'] === 'SI'){
+                		tagsToAppend.push(allFields[index])
+                	}
 
-                if (value[7]['v'] === 'SI') {
-                    tagsToAppend.push('LC');
-                }
-                if (value[8]['v'] === 'SI') {
-                    tagsToAppend.push('EG');
-                }
-                if (value[9]['v'] === 'SI') {
-                    tagsToAppend.push('RS');
-                }
-                console.log(tagsToAppend);
+                });
+                
+
+                console.log(tagsToAppend)
 
                 var latitude;
                 var longitude;
 
                 if (!value[16] || !value[17]) {
-                     getLonLat(value[2]['v'])
-                        .then(result => {
-                            console.log(result);
-                            latitude = result.lat;
-                            longitude = result.lon;
-                            console.log("lat e lon found")
-                            var marker = L.marker([latitude, longitude], { tags: tagsToAppend }).addTo(map);
-
-                            marker.bindPopup("<b>" + value[1]['v'] + "</b><br>Luogo: " + value[2]['v'] + "<br>Capienza: " + value[3]['v']);
-                            
-                        })
-                        .catch(error => {
-                            console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
-                        });
+                    try {
+                        const result = await getLonLat(value[2]['v']);
+                        console.log(result);
+                        latitude = result.lat;
+                        longitude = result.lon;
+                        console.log("lat e lon found");
+                    } catch (error) {
+                        console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
+                    }
                 } else {
                     latitude = value[16]['v'];
                     longitude = value[17]['v'];
@@ -117,19 +125,21 @@
 
                     marker.bindPopup("<b>" + value[1]['v'] + "</b><br>Luogo: " + value[2]['v'] + "<br>Capienza: " + value[3]['v']);
                 }
+            }));
 
-                return Promise.resolve();
-            });
+            var unitaFilter = L.control.tagFilterButton({
+                data: fields,
+                icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
+                filterOnEveryClick: true
+            }).addTo(map);
 
-            // Use Promise.all to wait for all promises to resolve
-            Promise.all(promises)
-                .then(() => {
-                    L.control.tagFilterButton({
-                        data: ['EG', 'LC', 'RS'],
-                        icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
-                        filterOnEveryClick: true
-                    }).addTo(map);
-                });
+            // var othersFilter = L.control.tagFilterButton({
+            //     data: ["Cucina attrezzata", "Pernotto in struttura", "Pernotto in Tenda", "Fuoco ", "Adatto a campi "],
+            //     icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
+            //     filterOnEveryClick: true
+            // }).addTo(map);
+
+            // unitaFilter.addToReleated(othersFilter);
         }
     </script>
 </body>
