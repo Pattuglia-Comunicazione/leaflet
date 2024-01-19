@@ -7,27 +7,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-tag-filter-button@0.0.5/src/leaflet-tag-filter-button.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-tag-filter-button@0.0.5/src/leaflet-tag-filter-button.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <link rel="stylesheet" href="Leaflet.SlideMenu-master/src/L.Control.SlideMenu.css" />
+    <script src="Leaflet.SlideMenu-master/src/L.Control.SlideMenu.js"></script>
+   
 </head>
 <body>
     <div id="map" style="height: 90vh; width: 90vw; margin-left: auto; margin-right: auto;"></div>
 
     <script>
-        $(document).ready(async function() {
-            try {
-                const data = await fetchData();
-                const regex = /\(([^)]+)\)/;
-                const risultato = String(data).match(regex);
-                const obj = JSON.parse(risultato[1]);
-                const schede = obj['table']['rows'];
-                caricaMarkers(schede);
-            } catch (error) {
-                console.log("Error fetching data:", error);
-            }
-        });
+        var map;
+        var markersLayer = new L.LayerGroup(); // NOTE: Layer is created here!
 
         async function fetchData() {
             return new Promise((resolve, reject) => {
@@ -42,95 +32,260 @@
             });
         }
 
-        function getLonLat(address) {
+        async function getLonLat(address) {
             const formattedAddress = address.replace(/,/g, '+');
             const url = `https://nominatim.openstreetmap.org/search?q=${formattedAddress}&format=json&polygon=1&addressdetails=1`;
 
-            return fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const lat = data[0].lat;
-                        const lon = data[0].lon;
-                        return { lat, lon };
-                    } else {
-                        console.log("No valid data found for the given address:", formattedAddress);
-                        return { lat: null, lon: null };
-                    }
-                })
-                .catch(error => {
-                    console.log("Error fetching data:", error.message);
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const { lat, lon } = data[0];
+                    return { lat, lon };
+                } else {
+                    console.log("No valid data found for the given address:", formattedAddress);
                     return { lat: null, lon: null };
-                });
+                }
+            } catch (error) {
+                console.log("Error fetching data:", error.message);
+                return { lat: null, lon: null };
+            }
         }
 
-        function caricaMarkers(schede) {
-            var map = L.map('map').setView([41.092144, 16.8872818], 10);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            }).addTo(map);
 
-            // Map each schede to an array of promises
-            const promises = schede.map(value => {
+        async function caricaMarkers(map, schede, selectedValues, tagMapping) {
+            
+            if (selectedValues.length && tagMapping) {
+                console.log("clearing marker layer")
+              
+
+                markersLayer.clearLayers();
+            }
+
+            var fields = [];
+            var indexes = [];
+            var allFields = [];
+
+           
+            await Promise.all(schede.map(async (value) => {
                 value = value['c'];
-                if (value[0]['v'] == "ID" || value[0]['v'] == "") { return Promise.resolve(null); }
+            
 
-                var tagsToAppend = [];
+                    if (value[0]['v'] == "ID" || value[0]['v'] == "") {
+                        value.forEach((cell, index) => {
+                            if (cell && cell['v'] !== null) {
+                                allFields.push(cell['v'].toLowerCase())
+                                if (!['ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine'].includes(cell['v'])) {
+                                    fields.push(cell['v'].toLowerCase());
+                                    indexes.push(index);
+                                }
+                            }
+                        });
+                        console.log("Retrieved fields from google sheet:"+fields);
+                        console.log("Retrieved index:" + indexes);
+                        return;
+                    }
+                
+                    if (selectedValues.length && tagMapping) {
 
-                if (value[7]['v'] === 'SI') {
-                    tagsToAppend.push('LC');
-                }
-                if (value[8]['v'] === 'SI') {
-                    tagsToAppend.push('EG');
-                }
-                if (value[9]['v'] === 'SI') {
-                    tagsToAppend.push('RS');
-                }
-                console.log(tagsToAppend);
+                    var tagsToAppend = []
+                    indexes.forEach(index => {
+                        // console.log("value[index]['v'] " + value[index]['v'])
+                        if (value[index]['v'].toLowerCase() === 'SI'.toLowerCase()) {
+                            tagsToAppend.push(allFields[index])
+                        }
+                    });
+
+                    console.log("Tags to append:" + tagsToAppend)
+                    let toVisualize = 1;
+
+                    console.log(tagMapping)
+
+                    // tagsToAppend.forEach(tag => {
+                    //      console.log("tag " + tag)
+                    //      console.log("MAPPING: " + tagMapping[tag])
+                    //     console.log("Selected values: " + selectedValues)
+
+                    //     if(!selectedValues.includes(tagMapping[tag])){
+                    //         toVisualize = 0;
+                    //     }
+
+                    // });
+
+                    //tagsToAppend = nomi delle colonne in cui il valore e' SI
+                    //selectedValues = testo dei checkbox selezionati
+
+                    selectedValues.forEach(selectedValue => {
+                        console.log("selectedValue " + selectedValue)
+                        console.log("MAPPING: " + tagMapping[selectedValue])
+                        if (!tagsToAppend.includes(tagMapping[selectedValue].toLowerCase())) {
+                            toVisualize = 0;
+                        }
+                    });
+                    console.log("To toVisualize:" + toVisualize)
+
+                    if (toVisualize === 0) {
+                        return;
+                    }
+            }
+
+                
 
                 var latitude;
                 var longitude;
 
                 if (!value[16] || !value[17]) {
-                     getLonLat(value[2]['v'])
-                        .then(result => {
-                            console.log(result);
-                            latitude = result.lat;
-                            longitude = result.lon;
-                            console.log("lat e lon found")
-                            var marker = L.marker([latitude, longitude], { tags: tagsToAppend }).addTo(map);
-
-                            marker.bindPopup("<b>" + value[1]['v'] + "</b><br>Luogo: " + value[2]['v'] + "<br>Capienza: " + value[3]['v']);
-                            
-                        })
-                        .catch(error => {
-                            console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
-                        });
+                    try {
+                        const result = await getLonLat(value[2]['v']);
+                        console.log(result);
+                        latitude = result.lat;
+                        longitude = result.lon;
+                        console.log("lat e lon found");
+                    } catch (error) {
+                        console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
+                    }
                 } else {
                     latitude = value[16]['v'];
                     longitude = value[17]['v'];
                 }
 
                 if (latitude && longitude) {
-                    var marker = L.marker([latitude, longitude], { tags: tagsToAppend }).addTo(map);
 
-                    marker.bindPopup("<b>" + value[1]['v'] + "</b><br>Luogo: " + value[2]['v'] + "<br>Capienza: " + value[3]['v']);
+                    var popupContent = "";
+                    if (value[1]){
+                        popupContent += "<b>" +  value[1]['v'] + "</b>"
+                    }
+                    
+                    var i = 0;
+                    allFields.forEach(field => {
+                        // console.log(field)
+                        // console.log(value[i])
+                        // console.log(value[i]['v'])
+
+                        if(field !== "id" && field !== "nome"  && field !== "longitudine" && field !== "latitudine" ){
+                            
+                            if(value[i]){
+                            
+                                popupContent += "</br>" + "<i>" + field.toUpperCase() + "</i>" + ": " + value[
+                                    i]['v']
+                           
+                            }
+
+                        }
+                        i++;
+
+                    
+                    });
+                    console.log(popupContent)
+
+                    // <b>${value[1]['v']}</b>
+                    // <br>Luogo: ${value[2]['v']}
+                    // <br>Capienza: ${value[3]['v']}`;
+
+                    var popup = L.popup().setLatLng([latitude, longitude]).setContent(popupContent);
+
+                    var marker = L.marker([latitude, longitude], {
+                        clickable: true
+                    }).bindPopup(popup, { showOnMouseOver: true });
+
+                    markersLayer.addLayer(marker);
                 }
+            }));
 
-                return Promise.resolve();
-            });
-
-            // Use Promise.all to wait for all promises to resolve
-            Promise.all(promises)
-                .then(() => {
-                    L.control.tagFilterButton({
-                        data: ['EG', 'LC', 'RS'],
-                        icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
-                        filterOnEveryClick: true
-                    }).addTo(map);
-                });
+            // NOTE: Add the updated markersLayer to the map.
+            markersLayer.addTo(map);
         }
+
+        function addMenu(map) {
+            const left = '<div class="header"><b>Filtra</b></div>';
+            const right = '<div class="header">Slide Menu (Right)</div>';
+            let contents = `
+                <form id="filterForm">
+                    <label for="consigliato-per-lc:">Consigliato per LC: <input type="checkbox" id="consigliato-per-lc:" name="consigliato-per-lc:" value="Consigliato per LC:"></label>
+                    </br>
+                    <label for="consigliato-per-eg:">Consigliato per EG: <input type="checkbox" id="consigliato-per-eg:" name="consigliato-per-eg:" value="Consigliato per EG:"></label>
+                    </br>
+                    <label for="consigliato-per-rs:">Consigliato per RS: <input type="checkbox" id="consigliato-per-rs:" name="consigliato-per-rs:" value="Consigliato per RS:"></label>
+                    </br>
+                    <label for="cucina-attrezzata:">Cucina Attrezzata: <input type="checkbox" id="cucina-attrezzata:" name="cucina-attrezzata:" value="Cucina Attrezzata:"></label>
+                    </br>
+                    <label for="pernotto-in-struttura:">Pernotto in struttura: <input type="checkbox" id="pernotto-in-struttura:" name="pernotto-in-struttura:" value="Pernotto in struttura:"></label>
+                    </br>
+                    <label for="pernotto-in-tenda:">Pernotto in tenda: <input type="checkbox" id="pernotto-in-tenda:" name="pernotto-in-tenda:" value="Pernotto in tenda:"></label>
+                    </br>
+                    <label for="accensione-fuoco:">Accensione Fuoco: <input type="checkbox" id="accensione-fuoco:" name="accensione-fuoco:" value="Accensione Fuoco:"></label>
+                    </br>
+                    <label for="adatto-ai-campi:">Adatto ai campi: <input type="checkbox" id="adatto-ai-campi:" name="adatto-ai-campi:" value="Adatto ai campi:"></label>
+                    </br>
+                    <input type="submit" value="Cerca">
+                    </br>
+                </form>`;
+
+            /* left */
+            const slideMenuLeft = L.control.slideMenu(left + contents, {
+                menuposition: "topright",
+                width: "20%",
+                height: "245px",
+                delay: "10",
+                icon: "fa-solid fa-filter"
+            }).addTo(map);
+
+           
+        }
+
+        $(document).ready(async function() {
+            try {
+                const data = await fetchData();
+                const regex = /\(([^)]+)\)/;
+                const risultato = String(data).match(regex);
+                const obj = JSON.parse(risultato[1]);
+                const schede = obj['table']['rows'];
+
+                map = L.map('map').setView([41.092144, 16.8872818], 10);
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+
+                // NOTE: We add the markersLayer to the map here. This way, the layer is only added once.
+                markersLayer.addTo(map);
+
+                addMenu(map);
+                cerca(map, schede);
+                await caricaMarkers(map, schede, [], []);
+            } catch (error) {
+                console.log("Error fetching data:", error);
+            }
+        });
+
+        async function cerca(map, schede) {
+            jQuery("#filterForm").submit(async function(event) {
+                event.preventDefault();
+
+                var selectedValues = [];
+                jQuery("input[type=checkbox]:checked").each(function() {
+                    selectedValues.push(jQuery(this).val());
+                });
+
+                // Map between the names of the form values and the name of the columns
+                const tagMapping = {
+                    'Consigliato per LC:' : 'LC' ,
+                    'Consigliato per EG:' : 'EG',
+                    'Consigliato per RS:' : "RS",
+                    'Cucina Attrezzata:' : 'Cucina attrezzata',
+                    'Pernotto in struttura:' : 'Pernotto in struttura',
+                    'Pernotto in tenda:': 'Pernotto in Tenda',
+                    'Accensione Fuoco:' : 'Fuoco',
+                    'Adatto a campi:': 'Adatto ai campi'
+                };
+
+                console.log("selectedValues:" + selectedValues);
+
+                await caricaMarkers(map, schede, selectedValues, tagMapping);
+            });
+        }
+
     </script>
 </body>
 </html>

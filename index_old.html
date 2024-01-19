@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-tag-filter-button@0.0.5/src/leaflet-tag-filter-button.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-tag-filter-button@0.0.5/src/leaflet-tag-filter-button.min.css">
+</head>
+<body>
+    <div id="map" style="height: 90vh; width: 90vw; margin-left: auto; margin-right: auto;"></div>
+
+    <script>
+        $(document).ready(async function() {
+            try {
+                const data = await fetchData();
+                const regex = /\(([^)]+)\)/;
+                const risultato = String(data).match(regex);
+                const obj = JSON.parse(risultato[1]);
+                const schede = obj['table']['rows'];
+                await caricaMarkers(schede);
+            } catch (error) {
+                console.log("Error fetching data:", error);
+            }
+        });
+
+        async function fetchData() {
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: "https://zonabaricentrostrutture.giudimax.workers.dev/",
+                    dataType: 'text',
+                    success: resolve,
+                    error: (jqXhr, textStatus, errorMessage) => {
+                        reject(errorMessage);
+                    },
+                });
+            });
+        }
+
+        async function getLonLat(address) {
+            const formattedAddress = address.replace(/,/g, '+');
+            const url = `https://nominatim.openstreetmap.org/search?q=${formattedAddress}&format=json&polygon=1&addressdetails=1`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const { lat, lon } = data[0];
+                    return { lat, lon };
+                } else {
+                    console.log("No valid data found for the given address:", formattedAddress);
+                    return { lat: null, lon: null };
+                }
+            } catch (error) {
+                console.log("Error fetching data:", error.message);
+                return { lat: null, lon: null };
+            }
+        }
+
+        async function caricaMarkers(schede) {
+            var map = L.map('map').setView([41.092144, 16.8872818], 11);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            var fields = [];
+            var indexes = [];
+            var allFields = [];
+
+            await Promise.all(schede.map(async (value) => {
+                value = value['c'];
+
+                if (value[0]['v'] == "ID" || value[0]['v'] == "") {
+                    value.forEach((cell, index) => {
+                        if (cell && cell['v'] !== null) {
+                        	allFields.push(cell['v'])
+                        	if(!['ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine'].includes(cell['v'])) {
+                            fields.push(cell['v']);
+                            indexes.push(index);
+                        }
+                    }
+                  });
+                    console.log(fields);
+                    console.log(indexes);
+                    return;
+                }
+                var tagsToAppend = []
+                indexes.forEach(index => {
+                	if (value[index]['v'] === 'SI'){
+                		tagsToAppend.push(allFields[index])
+                	}
+
+
+                });
+                // var tagsToAppend = indexes.filter(index => value[index]['v'] === 'SI').map(index => fields[index]);
+
+                console.log(tagsToAppend)
+
+                var latitude;
+                var longitude;
+
+                if (!value[16] || !value[17]) {
+                    try {
+                        const result = await getLonLat(value[2]['v']);
+                        console.log(result);
+                        latitude = result.lat;
+                        longitude = result.lon;
+                        console.log("lat e lon found");
+                    } catch (error) {
+                        console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
+                    }
+                } else {
+                    latitude = value[16]['v'];
+                    longitude = value[17]['v'];
+                }
+
+                if (latitude && longitude) {
+                    var marker = L.marker([latitude, longitude], { tags: tagsToAppend }).addTo(map);
+
+                    marker.bindPopup("<b>" + value[1]['v'] + "</b><br>Luogo: " + value[2]['v'] + "<br>Capienza: " + value[3]['v']);
+                }
+            }));
+
+            var unitaFilter = L.control.tagFilterButton({
+                data: fields,
+                icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
+                filterOnEveryClick: true
+            }).addTo(map);
+
+            // var othersFilter = L.control.tagFilterButton({
+            //     data: ["Cucina attrezzata", "Pernotto in struttura", "Pernotto in Tenda", "Fuoco ", "Adatto a campi "],
+            //     icon: '<img src="images/filter.png" style="width: 20px; height: 20px;">',
+            //     filterOnEveryClick: true
+            // }).addTo(map);
+
+            // unitaFilter.addToReleated(othersFilter);
+        }
+    </script>
+</body>
+</html>
