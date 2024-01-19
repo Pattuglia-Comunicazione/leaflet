@@ -53,10 +53,12 @@
             }
         }
 
+
         async function caricaMarkers(map, schede, selectedValues, tagMapping) {
             
             if (selectedValues.length && tagMapping) {
                 console.log("clearing marker layer")
+              
 
                 markersLayer.clearLayers();
             }
@@ -240,7 +242,7 @@
                 const obj = JSON.parse(risultato[1]);
                 const schede = obj['table']['rows'];
 
-                map = L.map('map').setView([41.092144, 16.8872818], 11);
+                map = L.map('map').setView([41.092144, 16.8872818], 10);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
