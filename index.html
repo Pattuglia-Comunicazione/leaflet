@@ -84,12 +84,12 @@
                                 }
                                 if (cell['v'].toUpperCase() === 'LATITUDINE'){
                                     index_lat = index;
-                                    console.log("lat": index_lat)
+                                    console.log("lat:" + index_lat);
 
                                 }
                                 if (cell['v'].toUpperCase() === 'LONGITUDINE')
                                     index_long = index;
-                                    console.log("long": index_long)
+                                    console.log("long:" + index_long);
 
 
 
@@ -267,18 +267,29 @@
 
                 // Map between the names of the form values and the name of the columns
                     const tagMapping = {
-    'cacce-lc': 'Adatto per cacce brevi LC:',
-    'uscite-eg': 'Adatto per uscite brevi EG:',
-    'cons-rs': 'Adatto per uscite brevi RS:',
-    'campi-lc': 'Adatto per vancanze di branco/volo LC:',
-    'campi-eg': 'Adatto per campi estivi EG:',
-    'campi-rs': 'Adatto per esperienze estive RS:',
-    'cucina': 'Cucina Attrezzata:',
-    'pernotto-struttura': 'Pernotto in struttura:',
-    'pernotto-tenda': 'Pernotto in tenda:',
-    'fuoco': 'Accensione Fuoco:',
-
+    'Adatto per cacce brevi LC:': 'Adatto per cacce brevi LC',
+    'Adatto per uscite brevi EG:': 'Adatto per uscite brevi EG',
+    'Adatto per uscite brevi RS:': 'Adatto per uscite brevi RS',
+    'Adatto per vancanze di branco/volo LC:': 'Adatto per campi estivi LC',
+    'Adatto per campi estivi EG:': 'Adatto per campi estivi EG',
+    'Adatto per esperienze estive RS:': 'Adatto per campi estivi RS',
+    'Cucina Attrezzata:': 'Cucina attrezzata',
+    'Pernotto in struttura:': 'Pernotto in struttura',
+    'Pernotto in tenda:': 'Pernotto in Tenda',
+    'Accensione Fuoco:': 'Fuoco '
 };
+
+// const tagMapping = {
+//                     'Consigliato per LC:' : 'LC' ,
+//                     'Consigliato per EG:' : 'EG',
+//                     'Consigliato per RS:' : "RS",
+//                     'Cucina Attrezzata:' : 'Cucina attrezzata',
+//                     'Pernotto in struttura:' : 'Pernotto in struttura',
+//                     'Pernotto in tenda:': 'Pernotto in Tenda',
+//                     'Accensione Fuoco:' : 'Fuoco',
+//                     'Adatto a campi:': 'Adatto ai campi'
+//                 };
+
 
                 console.log("selectedValues:" + selectedValues);
 
