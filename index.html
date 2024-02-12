@@ -53,12 +53,10 @@
             }
         }
 
-
         async function caricaMarkers(map, schede, selectedValues, tagMapping) {
             
             if (selectedValues.length && tagMapping) {
                 console.log("clearing marker layer")
-              
 
                 markersLayer.clearLayers();
             }
@@ -66,6 +64,10 @@
             var fields = [];
             var indexes = [];
             var allFields = [];
+            var index_lat = -1;
+            var index_long = -1;
+            const excludedLabels = ['Capienza tende','Capienza pernotto','Capienza spazi interni','Capienza spazi esterni', 'ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine'];
+
 
            
             await Promise.all(schede.map(async (value) => {
@@ -76,10 +78,21 @@
                         value.forEach((cell, index) => {
                             if (cell && cell['v'] !== null) {
                                 allFields.push(cell['v'].toLowerCase())
-                                if (!['ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine'].includes(cell['v'])) {
+                                if (!excludedLabels.includes(cell['v'])) {
                                     fields.push(cell['v'].toLowerCase());
                                     indexes.push(index);
                                 }
+                                if (cell['v'].toUpperCase() === 'LATITUDINE'){
+                                    index_lat = index;
+                                    console.log("lat": index_lat)
+
+                                }
+                                if (cell['v'].toUpperCase() === 'LONGITUDINE')
+                                    index_long = index;
+                                    console.log("long": index_long)
+
+
+
                             }
                         });
                         console.log("Retrieved fields from google sheet:"+fields);
@@ -135,7 +148,7 @@
                 var latitude;
                 var longitude;
 
-                if (!value[16] || !value[17]) {
+                if (!value[index_lat] || !value[index_long]) {
                     try {
                         const result = await getLonLat(value[2]['v']);
                         console.log(result);
@@ -146,8 +159,8 @@
                         console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
                     }
                 } else {
-                    latitude = value[16]['v'];
-                    longitude = value[17]['v'];
+                    latitude = value[index_lat]['v'];
+                    longitude = value[index_long]['v'];
                 }
 
                 if (latitude && longitude) {
@@ -242,7 +255,7 @@
                 const obj = JSON.parse(risultato[1]);
                 const schede = obj['table']['rows'];
 
-                map = L.map('map').setView([41.092144, 16.8872818], 10);
+                map = L.map('map').setView([41.092144, 16.8872818], 11);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
