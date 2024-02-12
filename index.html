@@ -61,7 +61,7 @@
                 markersLayer.clearLayers();
             }
 
-            var fields = [];
+            // var fields = [];
             var indexes = [];
             var allFields = [];
             var index_lat = -1;
@@ -73,13 +73,16 @@
             await Promise.all(schede.map(async (value) => {
                 value = value['c'];
             
-
+                    //se e' la prima riga, cioe' l'intestazione del google sheet prendi gli indici delle colonne che ci interessano
                     if (value[0]['v'] == "ID" || value[0]['v'] == "") {
                         value.forEach((cell, index) => {
                             if (cell && cell['v'] !== null) {
+                                
                                 allFields.push(cell['v'].toLowerCase())
                                 if (!excludedLabels.includes(cell['v'])) {
-                                    fields.push(cell['v'].toLowerCase());
+                                    // fields.push(cell['v'].toLowerCase());
+
+                                    // selezioni gli indici delle colonne su cui e' possibile filtrare
                                     indexes.push(index);
                                 }
                                 if (cell['v'].toUpperCase() === 'LATITUDINE'){
@@ -95,58 +98,80 @@
 
                             }
                         });
-                        console.log("Retrieved fields from google sheet:"+fields);
+                        // console.log("Retrieved fields from google sheet:"+fields);
                         console.log("Retrieved index:" + indexes);
                         return;
                     }
                 
                     if (selectedValues.length && tagMapping) {
 
-                    var tagsToAppend = []
-                    indexes.forEach(index => {
-                        // console.log("value[index]['v'] " + value[index]['v'])
-                        if (value[index]['v'].toLowerCase() === 'SI'.toLowerCase()) {
-                            tagsToAppend.push(allFields[index])
+                        var tagsToAppend = []
+                        indexes.forEach(index => {
+                    
+                            if (value[index]['v'].toLowerCase() === 'SI'.toLowerCase()) {
+                                //aggiungi il nome della colonna nel google sheet come tag se il valore della colonna e' SI
+                                tagsToAppend.push(allFields[index])
+                            }
+                        });
+
+                        console.log("Tags to append:" + tagsToAppend)
+                        let toVisualize = 1;
+
+                        console.log(tagMapping)
+
+                        
+                        //tagsToAppend = nomi delle colonne in cui il valore e' SI
+                        //selectedValues = testo dei checkbox selezionati
+
+                        /* 
+                        controlla che la scheda contenga tra i tag  quelli selezionati.
+                        piu' specificatamente: tagMapping e' un dizionario che ha come chiave il il testo dei checkbox e come valore il nome della colonna, quindi: 
+                        
+                            - tagMapping = {'testo-checkbox' : 'col1'  }
+                        
+                        tagsToAppned contiene i nomi delle colonne che hanno come valore si, quindi: 
+
+                            - tagsToAppend = ['col1']
+
+                        selectedValues e' il testo del checkbox, quindi: 
+
+                            - selectedValues = ['testo-checkbox']
+
+                        Quindi per ogni selectedValues controlla che in
+                        tagsToAppend abbia il nome delle colonna associata al checkbox selezionato. 
+                        In questo caso: 
+
+                            - !tagsToAppend.includes(tagMapping['testo-checkbox'].toLowerCase())) 
+
+                            -  !['col1'].includes(tagMapping['testo-checkbox'].toLowerCase()))
+
+                            -  !['col1'].includes('col1')) 
+
+
+
+                        */
+
+
+
+                        selectedValues.forEach(selectedValue => {
+                            // console.log("selectedValue " + selectedValue)
+                            // console.log("MAPPING: " + tagMapping[selectedValue])
+                            if (!tagsToAppend.includes(tagMapping[selectedValue].toLowerCase())) {
+                                toVisualize = 0;
+                            }
+                        });
+                        // console.log("To toVisualize:" + toVisualize)
+
+                        if (toVisualize === 0) {
+                            return;
                         }
-                    });
-
-                    console.log("Tags to append:" + tagsToAppend)
-                    let toVisualize = 1;
-
-                    console.log(tagMapping)
-
-                    // tagsToAppend.forEach(tag => {
-                    //      console.log("tag " + tag)
-                    //      console.log("MAPPING: " + tagMapping[tag])
-                    //     console.log("Selected values: " + selectedValues)
-
-                    //     if(!selectedValues.includes(tagMapping[tag])){
-                    //         toVisualize = 0;
-                    //     }
-
-                    // });
-
-                    //tagsToAppend = nomi delle colonne in cui il valore e' SI
-                    //selectedValues = testo dei checkbox selezionati
-
-                    selectedValues.forEach(selectedValue => {
-                        console.log("selectedValue " + selectedValue)
-                        console.log("MAPPING: " + tagMapping[selectedValue])
-                        if (!tagsToAppend.includes(tagMapping[selectedValue].toLowerCase())) {
-                            toVisualize = 0;
-                        }
-                    });
-                    console.log("To toVisualize:" + toVisualize)
-
-                    if (toVisualize === 0) {
-                        return;
                     }
-            }
 
                 
 
                 var latitude;
                 var longitude;
+                // se le colonne lang e lat sono vuote nel google sheet prova a trovare i due valori usando nominatim
 
                 if (!value[index_lat] || !value[index_long]) {
                     try {
@@ -159,13 +184,16 @@
                         console.log("Error fetching latitude and longitude for:", value[2]['v'], error);
                     }
                 } else {
+                    // se non sono vuote acquisisce i valori
                     latitude = value[index_lat]['v'];
                     longitude = value[index_long]['v'];
                 }
 
                 if (latitude && longitude) {
 
+                    //popola le informazioni da visualizzare
                     var popupContent = "";
+                    // nome della struttura in grassetto
                     if (value[1]){
                         popupContent += "<b>" +  value[1]['v'] + "</b>"
                     }
@@ -176,8 +204,10 @@
                         // console.log(value[i])
                         // console.log(value[i]['v'])
 
+                        //salta le colonne che non interessano essere visualizzate
                         if(field !== "id" && field !== "nome"  && field !== "longitudine" && field !== "latitudine" ){
-                            
+                            // se il valore nella cella i non e' vuoto
+                            // aggiungi il nome della colonna in corsivo e corrispondente valore 
                             if(value[i]){
                             
                                 popupContent += "</br>" + "<i>" + field.toUpperCase() + "</i>" + ": " + value[
@@ -196,17 +226,19 @@
                     // <br>Luogo: ${value[2]['v']}
                     // <br>Capienza: ${value[3]['v']}`;
 
+                    //aggiunge le info sulla mappa al corrispettivo segnapunto
                     var popup = L.popup().setLatLng([latitude, longitude]).setContent(popupContent);
 
+                    //crea il marker
                     var marker = L.marker([latitude, longitude], {
                         clickable: true
                     }).bindPopup(popup, { showOnMouseOver: true });
 
+                    //aggiunge il marker sul layer della mappa
                     markersLayer.addLayer(marker);
                 }
             }));
-
-            // NOTE: Add the updated markersLayer to the map.
+            //aggiunge il layer alla mappa in modo che sia visualizzato
             markersLayer.addTo(map);
         }
 
@@ -245,11 +277,16 @@
                     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 }).addTo(map);
 
-                // NOTE: We add the markersLayer to the map here. This way, the layer is only added once.
+                //aggiunge il layer alla mappa (forse inutile?)
                 markersLayer.addTo(map);
 
+                //aggiunge i filtri al menu
                 addMenu(map);
+                
+                //inizializza il button per cercare
                 cerca(map, schede);
+                
+                //carica tutti i marker
                 await caricaMarkers(map, schede, [], []);
             } catch (error) {
                 console.log("Error fetching data:", error);
@@ -265,34 +302,23 @@
                     selectedValues.push(jQuery(this).val());
                 });
 
-                // Map between the names of the form values and the name of the columns
-                    const tagMapping = {
-    'Adatto per cacce brevi LC:': 'Adatto per cacce brevi LC',
-    'Adatto per uscite brevi EG:': 'Adatto per uscite brevi EG',
-    'Adatto per uscite brevi RS:': 'Adatto per uscite brevi RS',
-    'Adatto per vancanze di branco/volo LC:': 'Adatto per campi estivi LC',
-    'Adatto per campi estivi EG:': 'Adatto per campi estivi EG',
-    'Adatto per esperienze estive RS:': 'Adatto per campi estivi RS',
-    'Cucina Attrezzata:': 'Cucina attrezzata',
-    'Pernotto in struttura:': 'Pernotto in struttura',
-    'Pernotto in tenda:': 'Pernotto in Tenda',
-    'Accensione Fuoco:': 'Fuoco '
-};
+                // Map tra i nomi dei checkboxes (chiavi) e i nomi delle colonne nel google sheet (valori)
 
-// const tagMapping = {
-//                     'Consigliato per LC:' : 'LC' ,
-//                     'Consigliato per EG:' : 'EG',
-//                     'Consigliato per RS:' : "RS",
-//                     'Cucina Attrezzata:' : 'Cucina attrezzata',
-//                     'Pernotto in struttura:' : 'Pernotto in struttura',
-//                     'Pernotto in tenda:': 'Pernotto in Tenda',
-//                     'Accensione Fuoco:' : 'Fuoco',
-//                     'Adatto a campi:': 'Adatto ai campi'
-//                 };
+                const tagMapping = {
+                    'Adatto per cacce brevi LC:': 'Adatto per cacce brevi LC',
+                    'Adatto per uscite brevi EG:': 'Adatto per uscite brevi EG',
+                    'Adatto per uscite brevi RS:': 'Adatto per uscite brevi RS',
+                    'Adatto per vancanze di branco/volo LC:': 'Adatto per campi estivi LC',
+                    'Adatto per campi estivi EG:': 'Adatto per campi estivi EG',
+                    'Adatto per esperienze estive RS:': 'Adatto per campi estivi RS',
+                    'Cucina Attrezzata:': 'Cucina attrezzata',
+                    'Pernotto in struttura:': 'Pernotto in struttura',
+                    'Pernotto in tenda:': 'Pernotto in Tenda',
+                    'Accensione Fuoco:': 'Fuoco '
+                };
 
 
-                console.log("selectedValues:" + selectedValues);
-
+                // console.log("selectedValues:" + selectedValues);
                 await caricaMarkers(map, schede, selectedValues, tagMapping);
             });
         }
