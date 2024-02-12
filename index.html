@@ -215,25 +215,9 @@
             const right = '<div class="header">Slide Menu (Right)</div>';
             let contents = `
                 <form id="filterForm">
-                    <label for="consigliato-per-lc:">Consigliato per LC: <input type="checkbox" id="consigliato-per-lc:" name="consigliato-per-lc:" value="Consigliato per LC:"></label>
-                    </br>
-                    <label for="consigliato-per-eg:">Consigliato per EG: <input type="checkbox" id="consigliato-per-eg:" name="consigliato-per-eg:" value="Consigliato per EG:"></label>
-                    </br>
-                    <label for="consigliato-per-rs:">Consigliato per RS: <input type="checkbox" id="consigliato-per-rs:" name="consigliato-per-rs:" value="Consigliato per RS:"></label>
-                    </br>
-                    <label for="cucina-attrezzata:">Cucina Attrezzata: <input type="checkbox" id="cucina-attrezzata:" name="cucina-attrezzata:" value="Cucina Attrezzata:"></label>
-                    </br>
-                    <label for="pernotto-in-struttura:">Pernotto in struttura: <input type="checkbox" id="pernotto-in-struttura:" name="pernotto-in-struttura:" value="Pernotto in struttura:"></label>
-                    </br>
-                    <label for="pernotto-in-tenda:">Pernotto in tenda: <input type="checkbox" id="pernotto-in-tenda:" name="pernotto-in-tenda:" value="Pernotto in tenda:"></label>
-                    </br>
-                    <label for="accensione-fuoco:">Accensione Fuoco: <input type="checkbox" id="accensione-fuoco:" name="accensione-fuoco:" value="Accensione Fuoco:"></label>
-                    </br>
-                    <label for="adatto-ai-campi:">Adatto ai campi: <input type="checkbox" id="adatto-ai-campi:" name="adatto-ai-campi:" value="Adatto ai campi:"></label>
-                    </br>
-                    <input type="submit" value="Cerca">
-                    </br>
-                </form>`;
+     
+        <label htmlfor="adatto-per-cacce-brevi-lc:">Adatto per cacce brevi LC: <input type="checkbox" id="adatto-per-cacce-brevi-lc:" name="adatto-per-cacce-brevi-lc:" value="Adatto per cacce brevi LC:"></label><label htmlfor="adatto-per-uscite-brevi-eg:">Adatto per uscite brevi EG: <input type="checkbox" id="adatto-per-uscite-brevi-eg:" name="adatto-per-uscite-brevi-eg:" value="Adatto per uscite brevi EG:"></label><label htmlfor="adatto-per-uscite-brevi-rs:">Adatto per uscite brevi RS: <input type="checkbox" id="adatto-per-uscite-brevi-rs:" name="adatto-per-uscite-brevi-rs:" value="Adatto per uscite brevi RS:"></label><label htmlfor="adatto-per-vancanze-di-branco/volo-lc:">Adatto per vancanze di branco/volo LC: <input type="checkbox" id="adatto-per-vancanze-di-branco/volo-lc:" name="adatto-per-vancanze-di-branco/volo-lc:" value="Adatto per vancanze di branco/volo LC:"></label><label htmlfor="adatto-per-campi-estivi-eg:">Adatto per campi estivi EG: <input type="checkbox" id="adatto-per-campi-estivi-eg:" name="adatto-per-campi-estivi-eg:" value="Adatto per campi estivi EG:"></label><label htmlfor="adatto-per-esperienze-estive-rs:">Adatto per esperienze estive RS: <input type="checkbox" id="adatto-per-esperienze-estive-rs:" name="adatto-per-esperienze-estive-rs:" value="Adatto per esperienze estive RS:"></label><label htmlfor="cucina-attrezzata:">Cucina Attrezzata: <input type="checkbox" id="cucina-attrezzata:" name="cucina-attrezzata:" value="Cucina Attrezzata:"></label><label htmlfor="pernotto-in-struttura:">Pernotto in struttura: <input type="checkbox" id="pernotto-in-struttura:" name="pernotto-in-struttura:" value="Pernotto in struttura:"></label><label htmlfor="pernotto-in-tenda:">Pernotto in tenda: <input type="checkbox" id="pernotto-in-tenda:" name="pernotto-in-tenda:" value="Pernotto in tenda:"></label><label htmlfor="accensione-fuoco:">Accensione Fuoco: <input type="checkbox" id="accensione-fuoco:" name="accensione-fuoco:" value="Accensione Fuoco:"></label><input type="submit" value="Cerca">
+    </form>`;
 
             /* left */
             const slideMenuLeft = L.control.slideMenu(left + contents, {
@@ -282,16 +266,19 @@
                 });
 
                 // Map between the names of the form values and the name of the columns
-                const tagMapping = {
-                    'Consigliato per LC:' : 'LC' ,
-                    'Consigliato per EG:' : 'EG',
-                    'Consigliato per RS:' : "RS",
-                    'Cucina Attrezzata:' : 'Cucina attrezzata',
-                    'Pernotto in struttura:' : 'Pernotto in struttura',
-                    'Pernotto in tenda:': 'Pernotto in Tenda',
-                    'Accensione Fuoco:' : 'Fuoco',
-                    'Adatto a campi:': 'Adatto ai campi'
-                };
+                    const tagMapping = {
+    'cacce-lc': 'Adatto per cacce brevi LC:',
+    'uscite-eg': 'Adatto per uscite brevi EG:',
+    'cons-rs': 'Adatto per uscite brevi RS:',
+    'campi-lc': 'Adatto per vancanze di branco/volo LC:',
+    'campi-eg': 'Adatto per campi estivi EG:',
+    'campi-rs': 'Adatto per esperienze estive RS:',
+    'cucina': 'Cucina Attrezzata:',
+    'pernotto-struttura': 'Pernotto in struttura:',
+    'pernotto-tenda': 'Pernotto in tenda:',
+    'fuoco': 'Accensione Fuoco:',
+
+};
 
                 console.log("selectedValues:" + selectedValues);
 
