@@ -66,7 +66,7 @@
             var allFields = [];
             var index_lat = -1;
             var index_long = -1;
-            const excludedLabels = ['Capienza tende','Capienza pernotto','Capienza spazi interni','Capienza spazi esterni', 'ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine'];
+            const excludedLabels = ['Capienza tende','Capienza pernotto','Capienza spazi interni','Capienza spazi esterni', 'ID', 'Descrizione', 'Email', 'Numeri di Telefono', 'Nome', 'Capienza', 'Indirizzo', 'Nome referente', 'Latitudine', 'Longitudine', 'Data Aggiornamento'];
 
 
            
@@ -248,7 +248,27 @@
             let contents = `
                 <form id="filterForm">
      
-        <label htmlfor="adatto-per-cacce-brevi-lc:">Adatto per cacce brevi LC: <input type="checkbox" id="adatto-per-cacce-brevi-lc:" name="adatto-per-cacce-brevi-lc:" value="Adatto per cacce brevi LC:"></label><label htmlfor="adatto-per-uscite-brevi-eg:">Adatto per uscite brevi EG: <input type="checkbox" id="adatto-per-uscite-brevi-eg:" name="adatto-per-uscite-brevi-eg:" value="Adatto per uscite brevi EG:"></label><label htmlfor="adatto-per-uscite-brevi-rs:">Adatto per uscite brevi RS: <input type="checkbox" id="adatto-per-uscite-brevi-rs:" name="adatto-per-uscite-brevi-rs:" value="Adatto per uscite brevi RS:"></label><label htmlfor="adatto-per-vancanze-di-branco/volo-lc:">Adatto per vancanze di branco/volo LC: <input type="checkbox" id="adatto-per-vancanze-di-branco/volo-lc:" name="adatto-per-vancanze-di-branco/volo-lc:" value="Adatto per vancanze di branco/volo LC:"></label><label htmlfor="adatto-per-campi-estivi-eg:">Adatto per campi estivi EG: <input type="checkbox" id="adatto-per-campi-estivi-eg:" name="adatto-per-campi-estivi-eg:" value="Adatto per campi estivi EG:"></label><label htmlfor="adatto-per-esperienze-estive-rs:">Adatto per esperienze estive RS: <input type="checkbox" id="adatto-per-esperienze-estive-rs:" name="adatto-per-esperienze-estive-rs:" value="Adatto per esperienze estive RS:"></label><label htmlfor="cucina-attrezzata:">Cucina Attrezzata: <input type="checkbox" id="cucina-attrezzata:" name="cucina-attrezzata:" value="Cucina Attrezzata:"></label><label htmlfor="pernotto-in-struttura:">Pernotto in struttura: <input type="checkbox" id="pernotto-in-struttura:" name="pernotto-in-struttura:" value="Pernotto in struttura:"></label><label htmlfor="pernotto-in-tenda:">Pernotto in tenda: <input type="checkbox" id="pernotto-in-tenda:" name="pernotto-in-tenda:" value="Pernotto in tenda:"></label><label htmlfor="accensione-fuoco:">Accensione Fuoco: <input type="checkbox" id="accensione-fuoco:" name="accensione-fuoco:" value="Accensione Fuoco:"></label><input type="submit" value="Cerca">
+        <label htmlfor="adatto-per-cacce-brevi-lc:">Adatto per cacce brevi LC: <input type="checkbox" id="adatto-per-cacce-brevi-lc:" name="adatto-per-cacce-brevi-lc:" value="Adatto per cacce brevi LC:"></label>
+            <br>
+            <label htmlfor="adatto-per-uscite-brevi-eg:">Adatto per uscite brevi EG: <input type="checkbox" id="adatto-per-uscite-brevi-eg:" name="adatto-per-uscite-brevi-eg:" value="Adatto per uscite brevi EG:"></label>
+            <br>
+            <label htmlfor="adatto-per-uscite-brevi-rs:">Adatto per uscite brevi RS: <input type="checkbox" id="adatto-per-uscite-brevi-rs:" name="adatto-per-uscite-brevi-rs:" value="Adatto per uscite brevi RS:"></label>
+            <br>
+            <label htmlfor="adatto-per-vancanze-di-branco/volo-lc:">Adatto per vancanze di branco/volo LC: <input type="checkbox" id="adatto-per-vancanze-di-branco/volo-lc:" name="adatto-per-vancanze-di-branco/volo-lc:" value="Adatto per vancanze di branco/volo LC:"></label>
+            <br>
+            <label htmlfor="adatto-per-campi-estivi-eg:">Adatto per campi estivi EG: <input type="checkbox" id="adatto-per-campi-estivi-eg:" name="adatto-per-campi-estivi-eg:" value="Adatto per campi estivi EG:"></label>
+            <br>
+            <label htmlfor="adatto-per-esperienze-estive-rs:">Adatto per esperienze estive RS: <input type="checkbox" id="adatto-per-esperienze-estive-rs:" name="adatto-per-esperienze-estive-rs:" value="Adatto per esperienze estive RS:"></label>
+            <br>
+            <label htmlfor="cucina-attrezzata:">Cucina Attrezzata: <input type="checkbox" id="cucina-attrezzata:" name="cucina-attrezzata:" value="Cucina Attrezzata:"></label>
+            <br>
+            <label htmlfor="pernotto-in-struttura:">Pernotto in struttura: <input type="checkbox" id="pernotto-in-struttura:" name="pernotto-in-struttura:" value="Pernotto in struttura:"></label>
+            <br>
+            <label htmlfor="pernotto-in-tenda:">Pernotto in tenda: <input type="checkbox" id="pernotto-in-tenda:" name="pernotto-in-tenda:" value="Pernotto in tenda:"></label>
+            <br>
+            <label htmlfor="accensione-fuoco:">Accensione Fuoco: <input type="checkbox" id="accensione-fuoco:" name="accensione-fuoco:" value="Accensione Fuoco:"></label>
+            <br>
+            <input type="submit" value="Cerca">
     </form>`;
 
             /* left */
